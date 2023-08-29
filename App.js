@@ -1,35 +1,146 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, Button, SafeAreaView, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Text, Button, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';  
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import { Spacer } from 'react-native-flex-layout';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import NoteList from './components/NoteList';
 import NoteScreen from './pages/NoteScreen'; 
+import NoteDetailScreen from './pages/NoteDetailScreen';
 import ConfigScreen from './pages/ConfigScreen';
 import Info from './pages/Info';
 
 const Stack = createStackNavigator();
 
 export default function App() {
+  const [isAuthenticationEnabled, setIsAuthenticationEnabled] = useState(false);
+  const [initialRoute, setInitialRoute] = useState('Authentication');
+
+  useEffect(() => {
+    loadAuthenticationSetting();
+  }, []);
+
+  const loadAuthenticationSetting = async () => {
+    try {
+      const storedValue = await AsyncStorage.getItem('authenticationEnabled');
+      if (storedValue !== null) {
+        setIsAuthenticationEnabled(JSON.parse(storedValue));
+      }
+    } catch (error) {
+      console.error('Error loading authentication setting:', error);
+    }
+  };
+
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName={initialRoute}>
+        <Stack.Screen name="Authentication">
+          {props => (
+          <AuthenticationScreen
+          {...props}
+          isAuthenticationEnabled={isAuthenticationEnabled}
+          setIsAuthenticationEnabled={setIsAuthenticationEnabled}
+        />
+          )}
+        </Stack.Screen>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Note" component={NoteScreen} />
         <Stack.Screen name="Configurações" component={ConfigScreen}/>
         <Stack.Screen name="Info" component={Info} />
+        <Stack.Screen name="NoteDetail" component={NoteDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+function AuthenticationScreen({ navigation, isAuthenticationEnabled }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  async function verifyAvailableAuthentication() {
+    const compatible = await LocalAuthentication.hasHardwareAsync();
+    //console.log(compatible);
+
+    const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+    //console.log(types.map(type => LocalAuthentication.AuthenticationType[type]));
+}
+
+  useEffect(() => {
+    verifyAvailableAuthentication();
+  },[]);
+
+  async function handleAuthentication() {
+    const isBiometricEnrolled = await LocalAuthentication.isEnrolledAsync();
+    console.log(isBiometricEnrolled);
+
+    if (!isBiometricEnrolled) {
+      return Alert.alert('Login', 'Biometria não cadastrada');
+    }
+
+    if (!isAuthenticationEnabled) {
+      return navigation.navigate('Home');
+    } 
+
+    const auth = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Autenticação necessária',
+      cancelLabel: 'Cancelar',
+      fallbackLabel: 'Biometria Não Reconhecida',
+    });
+
+    if (auth.success) {
+      if (isAuthenticationEnabled) {
+        setIsAuthenticated(true);
+        navigation.navigate('Home');
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.toolbar}>
+        <View style={styles.toolbarContent}>
+            <ScrollView style={styles.view}>
+              <Button title="entrar" onPress={handleAuthentication} />
+            </ScrollView>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 function HomeScreen({ navigation }) {
   const [notes, setNotes] = useState([]);
 
-  const handleAddNote = (text) => {
+  const loadNotes = async () => {
+    try {
+      const savedNotes = await AsyncStorage.getItem('notes');
+      if (savedNotes) {
+        setNotes(JSON.parse(savedNotes));
+      }
+    } catch (error) {
+      console.error('Error loading notes:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadNotes();
+  }, []);
+
+  const handleAddNote = async (text) => {
     const newNote = { id: Date.now(), text };
-    setNotes([...notes, newNote]);
-    navigation.goBack(); 
+    const updatedNotes = [...notes, newNote];
+    setNotes(updatedNotes);
+
+    try {
+      await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
+    } catch (error) {
+      console.error('Error saving notes:', error);
+    }
+
+    //navigation.goBack();
   };
 
   React.useLayoutEffect(() => {
@@ -56,12 +167,12 @@ function HomeScreen({ navigation }) {
       <View style={styles.toolbar}>
         <View style={styles.toolbarContent}>         
         </View>
-        <ScrollView style={styles.view}>
+        <View style={styles.view}>
           <Text style={styles.title}>
             Anotações
           </Text>
           <NoteList notes={notes}/>
-        </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );

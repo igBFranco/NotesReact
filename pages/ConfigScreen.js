@@ -1,21 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Switch, Text, TouchableOpacity, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 export default function ConfigScreen({ route, navigation }) {
 
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isAuthenticationEnabled, setIsAuthenticationEnabled] = useState(false); 
 
-  const toggleSwitch = () => {
-    setIsEnabled(previousState => !previousState);
+  const toggleAuthentication = () => {
+    setIsAuthenticationEnabled(!isAuthenticationEnabled);
+    saveAuthenticationSetting(!isAuthenticationEnabled);
+  };
+
+  useEffect(() => {
+    loadAuthenticationSetting();
+  }, []);
+
+  const loadAuthenticationSetting = async () => {
+    try {
+      const storedValue = await AsyncStorage.getItem('authenticationEnabled');
+      if (storedValue !== null) {
+        setIsAuthenticationEnabled(JSON.parse(storedValue));
+      }
+    } catch (error) {
+      console.error('Error loading authentication setting:', error);
+    }
+  };
+
+  const saveAuthenticationSetting = async (value) => {
+    try {
+      await AsyncStorage.setItem('authenticationEnabled', JSON.stringify(value));
+    } catch (error) {
+      console.error('Error saving authentication setting:', error);
+    }
   };
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
           headerTitle: '', 
           headerRight: () => (
-            <TouchableOpacity onPress={() => navigation.navigate('Info')}>
-              <Image source={require('../assets/person.text.rectangle.png')} style={{width: 30, height: 30, marginRight: 20}}/>
-            </TouchableOpacity>
+            <View>
+              <TouchableOpacity onPress={() => navigation.navigate('Info')}>
+                <Image source={require('../assets/person.text.rectangle.png')} style={{width: 30, height: 30, marginRight: 20}}/>
+              </TouchableOpacity>
+            </View>
+            
           ),
         });
       }, [navigation]);
@@ -27,10 +55,7 @@ export default function ConfigScreen({ route, navigation }) {
       </Text>
       <View style={styles.toggleOption}>
           <Text>Bloqueio por Biometria</Text>
-          <Switch
-          value={isEnabled}
-          onValueChange={toggleSwitch}
-          />
+          <Switch value={isAuthenticationEnabled} onValueChange={toggleAuthentication} />
       </View>
     </View>
   );

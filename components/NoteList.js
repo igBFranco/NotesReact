@@ -1,8 +1,15 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity , VirtualizedList} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const NoteList = ({ notes }) => {
+  const navigation = useNavigation(); // Get the navigation object
+
   const renderListItem = ({ item, index }) => {
+    const handleNotePress = () => {
+      navigation.navigate('NoteDetail', { text: item.text, id: item.id });
+    };
+
     const isFirstItem = index === 0;
     const isLastItem = index === notes.length - 1;
     
@@ -15,7 +22,7 @@ const NoteList = ({ notes }) => {
     };
 
     return (
-      <TouchableOpacity>
+      <TouchableOpacity onPress={handleNotePress}>
         <View style={listItemStyle}>
           <Text>{item.text}</Text>
         </View>
