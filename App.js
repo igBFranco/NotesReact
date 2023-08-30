@@ -126,19 +126,20 @@ function HomeScreen({ navigation }) {
   };
 
   useEffect(() => {
-    loadNotes();
+    //loadNotes();
   }, []);
 
-  const handleAddNote = async (text) => {
-    const newNote = { id: Date.now(), text };
-    const updatedNotes = [...notes, newNote];
-    setNotes(updatedNotes);
+  const handleAddNote = async (note) => {
+  const newNote = { 
+    id: Date.now(), ...note}; // Include image in the note
+  const updatedNotes = [...notes, newNote];
+  setNotes(updatedNotes);
 
-    try {
-      await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
-    } catch (error) {
-      console.error('Error saving notes:', error);
-    }
+  try {
+    await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
+  } catch (error) {
+    console.error('Error saving notes:', error);
+  }
 
     //navigation.goBack();
   };
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   editButton: {
-    
+    paddingLeft: 10,
   },
   configButton: {
     

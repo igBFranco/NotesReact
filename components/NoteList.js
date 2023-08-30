@@ -7,7 +7,7 @@ const NoteList = ({ notes }) => {
 
   const renderListItem = ({ item, index }) => {
     const handleNotePress = () => {
-      navigation.navigate('NoteDetail', { text: item.text, id: item.id });
+      navigation.navigate('NoteDetail', { title: item.title, text: item.text, id: item.id, imagem: item.image, date: item.date });
     };
 
     const isFirstItem = index === 0;
@@ -24,7 +24,7 @@ const NoteList = ({ notes }) => {
     return (
       <TouchableOpacity onPress={handleNotePress}>
         <View style={listItemStyle}>
-          <Text>{item.text}</Text>
+          <Text>{item.title}</Text>
         </View>
       </TouchableOpacity>
     );
