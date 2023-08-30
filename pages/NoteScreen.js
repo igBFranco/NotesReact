@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text, Image, ScrollView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
+import MapView, { Marker } from 'react-native-maps';
 
 export default function NoteScreen({ route, navigation }) {
   const [noteTitle, setNoteTitle] = useState('');
@@ -10,6 +10,7 @@ export default function NoteScreen({ route, navigation }) {
   const [noteImage, setNoteImage] = useState(null);
   const [noteDate, setNoteDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(true);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const handleSaveNote = () => {
     if (noteText || noteImage) {
@@ -41,11 +42,16 @@ export default function NoteScreen({ route, navigation }) {
     }
   };
 
+  const handleLocationPick = (event) => {
+    const coordinate = event.nativeEvent.coordinate;
+    setSelectedLocation(coordinate);
+  };
+
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "",
       headerRight: () => (
-        <Button title="Save Note" onPress={handleSaveNote} />
+        <Button title="Salvar" onPress={handleSaveNote} />
       ),
     });
   }, [navigation]);
@@ -97,8 +103,22 @@ export default function NoteScreen({ route, navigation }) {
         <Image source={require('../assets/mappin.and.ellipse.png')} style={{width: 25, height: 25, marginRight: 10}}/>
         <Text style={styles.imageButtonText}>Selecione a Localização</Text>
        </TouchableOpacity>
+       <MapView
+        mapType='satellite'
+        style={styles.map}
+        showsUserLocation={true}
+        initialRegion={{
+          latitude: selectedLocation ? selectedLocation.latitude : -26.13300,
+          longitude: selectedLocation ? selectedLocation.longitude : -49.80896,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+        onPress={handleLocationPick} // Register map click event
+      >
+        {selectedLocation && <Marker coordinate={selectedLocation} />}
+      </MapView>
       </View>
-      <Button title="Save Note" onPress={handleSaveNote} />
+      <Button title="Salvar" onPress={handleSaveNote} style={styles.saveButton}/>
     </ScrollView>
   );
 }
@@ -154,7 +174,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   locationBox: {
-    height: 45,
+    height: 250,
     borderRadius: 8,
     marginBottom: 20,
     paddingHorizontal: 10,
@@ -164,4 +184,12 @@ const styles = StyleSheet.create({
   locationButton: {
     flexDirection: 'row',
   },
+  map: {
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  saveButton: {
+    marginBottom: 20
+  }
 });
