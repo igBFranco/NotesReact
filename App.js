@@ -10,6 +10,7 @@ import NoteScreen from './pages/NoteScreen';
 import NoteDetailScreen from './pages/NoteDetailScreen';
 import ConfigScreen from './pages/ConfigScreen';
 import Info from './pages/Info';
+import { StatusBar } from 'expo-status-bar';
 
 const Stack = createStackNavigator();
 
@@ -51,6 +52,7 @@ export default function App() {
         <Stack.Screen name="Info" component={Info} />
         <Stack.Screen name="NoteDetail" component={NoteDetailScreen} />
       </Stack.Navigator>
+      <StatusBar style="auto" />
     </NavigationContainer>
   );
 }
@@ -126,7 +128,7 @@ function HomeScreen({ navigation }) {
   };
 
   useEffect(() => {
-    //loadNotes();
+    loadNotes();
   }, []);
 
   const handleAddNote = async (note) => {
@@ -150,10 +152,10 @@ function HomeScreen({ navigation }) {
       headerRight: () => (
         <View style={{display: "flex", flexDirection: 'row'}}>
           <TouchableOpacity onPress={() => navigation.navigate('Note', { onSave: handleAddNote })}>
-            <Image source={require('./assets/plus.png')} style={{width: 30, height: 30, marginRight: 20}}/>
+            <Image source={require('./assets/plus.png')} style={{width: 30, height: 30, marginRight: 16}}/>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Configurações')}>
-            <Image source={require('./assets/gear.png')} style={{width: 30, height: 30, marginRight: 20}}/>
+            <Image source={require('./assets/gear.png')} style={{width: 30, height: 30, marginRight: 16}}/>
           </TouchableOpacity>
         </View>
       ),
@@ -195,7 +197,7 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   editButton: {
-    paddingLeft: 10,
+    marginLeft: 16,
   },
   configButton: {
     

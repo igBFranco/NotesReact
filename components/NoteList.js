@@ -7,7 +7,7 @@ const NoteList = ({ notes }) => {
 
   const renderListItem = ({ item, index }) => {
     const handleNotePress = () => {
-      navigation.navigate('NoteDetail', { title: item.title, text: item.text, id: item.id, imagem: item.image, date: item.date });
+      navigation.navigate('NoteDetail', { title: item.title, text: item.text, id: item.id, image: item.image, date: item.date, location: item.location });
     };
 
     const isFirstItem = index === 0;

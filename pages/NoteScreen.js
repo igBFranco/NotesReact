@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text, Image, ScrollView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
 
 export default function NoteScreen({ route, navigation }) {
   const [noteTitle, setNoteTitle] = useState('');
@@ -10,11 +11,25 @@ export default function NoteScreen({ route, navigation }) {
   const [noteImage, setNoteImage] = useState(null);
   const [noteDate, setNoteDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(true);
+  
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permissão de localização negada');
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync();
+      setSelectedLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+    })();
+  }, []);
+  
   const [selectedLocation, setSelectedLocation] = useState(null);
-
   const handleSaveNote = () => {
     if (noteText || noteImage) {
-      route.params.onSave({ title: noteTitle, text: noteText, image: noteImage, date: noteDate });
+      console.log('location', selectedLocation);
+      console.log('image', noteImage);
+      route.params.onSave({ title: noteTitle, text: noteText, image: noteImage, date: noteDate, location: selectedLocation });
       navigation.navigate('Home');
     }
   };
@@ -98,8 +113,9 @@ export default function NoteScreen({ route, navigation }) {
         {noteImage && <Image source={{ uri: noteImage }} style={styles.image} />}
       </View>
       <Text style={styles.formTitle}>LOCALIZAÇÃO </Text>
+      <Button title="Salvar" onPress={handleSaveNote} style={styles.saveButton}/>
       <View style={styles.locationBox}>
-       <TouchableOpacity style={styles.locationButton}>
+       <TouchableOpacity style={styles.locationButton} >
         <Image source={require('../assets/mappin.and.ellipse.png')} style={{width: 25, height: 25, marginRight: 10}}/>
         <Text style={styles.imageButtonText}>Selecione a Localização</Text>
        </TouchableOpacity>
@@ -107,18 +123,19 @@ export default function NoteScreen({ route, navigation }) {
         mapType='satellite'
         style={styles.map}
         showsUserLocation={true}
+        minZoomLevel={15}
         initialRegion={{
           latitude: selectedLocation ? selectedLocation.latitude : -26.13300,
           longitude: selectedLocation ? selectedLocation.longitude : -49.80896,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
-        onPress={handleLocationPick} // Register map click event
+        onPress={handleLocationPick} 
       >
         {selectedLocation && <Marker coordinate={selectedLocation} />}
       </MapView>
       </View>
-      <Button title="Salvar" onPress={handleSaveNote} style={styles.saveButton}/>
+      
     </ScrollView>
   );
 }
