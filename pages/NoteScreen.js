@@ -115,7 +115,7 @@ export default function NoteScreen({ route, navigation }) {
     navigation.setOptions({
       headerTitle: "",
       headerRight: () => (
-        <Button title="Salvar" onPress={()=> handleSaveNote()} />
+        <Button title="Salvar" onPress={handleSaveNote} />
       ),
     });
   }, [navigation]);

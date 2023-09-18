@@ -5,6 +5,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { DatabaseConnection } from '../database';
+import { set } from 'date-fns';
+import { even } from 'react-native-flex-layout';
 
 const db = DatabaseConnection.getConnection();
 
@@ -12,12 +14,12 @@ const db = DatabaseConnection.getConnection();
 export default function NoteEditScreen({ route, navigation }) {
   const { title, text, image, date, location, noteId } = route.params;
 
-  const [noteTitle, setNoteTitle] = useState(title);
-  const [noteText, setNoteText] = useState(text);
-  const [noteImage, setNoteImage] = useState(image);
-  const [noteDate, setNoteDate] = useState( new Date(date));
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteText, setNoteText] = useState('');
+  const [noteImage, setNoteImage] = useState('');
+  const [noteDate, setNoteDate] = useState(new Date());
  // const [selectedLocation, setSelectedLocation] = useState(location ? locationFromString : '');
-  const [selectedLocation, setSelectedLocation] = useState(locationFromString);
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(true);
 
   const locationFromString = location
@@ -28,6 +30,7 @@ export default function NoteEditScreen({ route, navigation }) {
     : null;
   
   useEffect(() => {
+    updateAllStates(title, text, image, date, locationFromString);
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -39,9 +42,20 @@ export default function NoteEditScreen({ route, navigation }) {
     })();
   }, []);
 
+  let updateAllStates = (title, text, image, date, location) => {
+    setNoteTitle(title);
+    setNoteText(text);
+    setNoteImage(image);
+    setNoteDate(new Date());
+    setSelectedLocation(location);
+  };
+
   const handleSaveNote = () => {
     if (noteText || noteImage) {
-     
+     console.log(noteDate);
+     console.log(noteTitle);
+     console.log(image);
+
       const locationString = selectedLocation
       ? `${selectedLocation.latitude},${selectedLocation.longitude}`
       : '';
@@ -49,7 +63,7 @@ export default function NoteEditScreen({ route, navigation }) {
       db.transaction(function (tx) {
         tx.executeSql(
           'UPDATE table_note SET title=?, text=?, image=?, date=?, location=? WHERE note_id=?',
-          [noteTitle, noteText, noteImage, noteDate.toLocaleString(), selectedLocation, noteId],
+          [noteTitle, noteText, noteImage, noteDate.toLocaleString(), locationString, noteId],
           function (tx, results) {
             if (results.rowsAffected > 0) {
               Alert.alert(
@@ -137,7 +151,9 @@ export default function NoteEditScreen({ route, navigation }) {
         style={styles.input}
         placeholder=""
         value={noteTitle}
-        onChangeText={setNoteTitle}
+        onChangeText={
+          (noteTitle) => setNoteTitle(noteTitle)
+        }
       />
       <Text style={styles.formTitle}>CONTEÚDO</Text>
       <TextInput
@@ -156,6 +172,7 @@ export default function NoteEditScreen({ route, navigation }) {
             onChange={handleDatePicker}
           />
       </View>
+      <Button title="Salvar" onPress={() => handleSaveNote()} />
       <Text style={styles.formTitle}>IMAGEM</Text>
       <View style={styles.imageBox}>
         <TouchableOpacity style={styles.imageButton} onPress={handleCamera}>

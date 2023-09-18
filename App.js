@@ -102,7 +102,11 @@ function AuthenticationScreen({ navigation, isAuthenticationEnabled }) {
     }
 
     if (!isAuthenticationEnabled) {
-      return navigation.navigate('Home');
+      return navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
+      //return navigation.navigate('Home');
     } 
 
     const auth = await LocalAuthentication.authenticateAsync({
