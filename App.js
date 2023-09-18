@@ -12,6 +12,7 @@ import ConfigScreen from './pages/ConfigScreen';
 import Info from './pages/Info';
 import { StatusBar } from 'expo-status-bar';
 import { DatabaseConnection } from './database';
+import NoteEditScreen from './pages/NoteEditScreen';
 
 const db = DatabaseConnection.getConnection();
 const Stack = createStackNavigator();
@@ -28,7 +29,7 @@ export default function App() {
         [],
         function (tx, res) {
           console.log('item:', res.rows.length);
-          console.log(res.rows.item(0));
+          //console.log(res.rows.item(0));
           if (res.rows.length == 0) {
             txn.executeSql('DROP TABLE IF EXISTS table_note', []);
             txn.executeSql(
@@ -70,6 +71,7 @@ export default function App() {
         <Stack.Screen name="Configurações" component={ConfigScreen}/>
         <Stack.Screen name="Info" component={Info} />
         <Stack.Screen name="NoteDetail" component={NoteDetailScreen} />
+        <Stack.Screen name="NoteEdit" component={NoteEditScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>
@@ -119,13 +121,19 @@ function AuthenticationScreen({ navigation, isAuthenticationEnabled }) {
     }
   }
 
+  React.useLayoutEffect(() => {
+    navigation.setOptions({headerShown: false});
+  }, [navigation]);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.toolbar}>
-        <View style={styles.toolbarContent}>
-            <ScrollView style={styles.view}>
-              <Button title="entrar" onPress={handleAuthentication} />
-            </ScrollView>
+    <SafeAreaView style={styles.containerBlocked}>
+      <View style={styles.block}>
+        <View style={styles.centered}>
+            <Image source={require('./assets/lock.png')} style={{width: 50, height: 50}}/>
+            <Text style={styles.blockedTitle}>
+              Notas Bloqueadas
+            </Text>
+            <Button title="Entrar" onPress={handleAuthentication}/>
         </View>
       </View>
     </SafeAreaView>
@@ -145,7 +153,7 @@ function HomeScreen({ navigation }) {
           var temp = [];
           for (let i = 0; i < results.rows.length; ++i)
             temp.push(results.rows.item(i));
-          console.log(temp);
+          //console.log(temp);
           setNotes(temp);
         }
       );
@@ -222,5 +230,31 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 35,
     fontWeight: 'bold',
-  }
+  },
+  blockedTitle: {
+    fontSize: 25,
+  },
+  centered: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  containerBlocked: {
+    flex: 1,
+    padding: 20,
+    paddingTop: 40,
+    backgroundColor: '#ffffffff',
+  },
+  enterButton: {
+    borderRadius: 8,
+    borderColor: '#000000',
+    borderWidth: 1,
+    padding: 10,
+    marginTop: 20,
+  },
+  block: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

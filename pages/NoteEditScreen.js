@@ -9,13 +9,23 @@ import { DatabaseConnection } from '../database';
 const db = DatabaseConnection.getConnection();
 
 
-export default function NoteScreen({ route, navigation }) {
-  const [noteTitle, setNoteTitle] = useState('');
-  const [noteText, setNoteText] = useState('');
-  const [noteImage, setNoteImage] = useState(null);
-  const [noteDate, setNoteDate] = useState(new Date());
-  const [selectedLocation, setSelectedLocation] = useState('');
+export default function NoteEditScreen({ route, navigation }) {
+  const { title, text, image, date, location, noteId } = route.params;
+
+  const [noteTitle, setNoteTitle] = useState(title);
+  const [noteText, setNoteText] = useState(text);
+  const [noteImage, setNoteImage] = useState(image);
+  const [noteDate, setNoteDate] = useState( new Date(date));
+ // const [selectedLocation, setSelectedLocation] = useState(location ? locationFromString : '');
+  const [selectedLocation, setSelectedLocation] = useState(locationFromString);
   const [showDatePicker, setShowDatePicker] = useState(true);
+
+  const locationFromString = location
+    ? {
+        latitude: parseFloat(location.split(',')[0]),
+        longitude: parseFloat(location.split(',')[1]),
+      }
+    : null;
   
   useEffect(() => {
     (async () => {
@@ -31,21 +41,20 @@ export default function NoteScreen({ route, navigation }) {
 
   const handleSaveNote = () => {
     if (noteText || noteImage) {
-      
+     
       const locationString = selectedLocation
       ? `${selectedLocation.latitude},${selectedLocation.longitude}`
       : '';
 
       db.transaction(function (tx) {
         tx.executeSql(
-          'INSERT INTO table_note (title, text, image, date, location) VALUES (?,?,?,?,?)',
-          [noteTitle, noteText, noteImage, noteDate.toLocaleString(), locationString],
+          'UPDATE table_note SET title=?, text=?, image=?, date=?, location=? WHERE note_id=?',
+          [noteTitle, noteText, noteImage, noteDate.toLocaleString(), selectedLocation, noteId],
           function (tx, results) {
-            console.log('Results', results.rowsAffected);
             if (results.rowsAffected > 0) {
               Alert.alert(
-                'Sucesso!',
-                'Nota salva com sucesso!',
+                'Success!',
+                'Note updated successfully!',
                 [
                   {
                     text: 'Ok',
@@ -55,13 +64,13 @@ export default function NoteScreen({ route, navigation }) {
                 { cancelable: false }
               );
             } else {
-              console.error('Error: No rows affected during insertion.');
-              alert('Error while trying to register the note!');
+              console.error('Error: No rows affected during update.');
+              alert('Error while trying to update the note!');
             }
           },
           function (tx, error) {
             console.error('Error executing SQL:', error);
-            alert('Error while trying to register the note!');
+            alert('Error while trying to update the note!');
           }
         );
       });
@@ -115,14 +124,14 @@ export default function NoteScreen({ route, navigation }) {
     navigation.setOptions({
       headerTitle: "",
       headerRight: () => (
-        <Button title="Salvar" onPress={()=> handleSaveNote()} />
+        <Button title="Salvar" onPress={handleSaveNote} />
       ),
     });
   }, [navigation]);
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Adicionar Nota</Text>
+      <Text style={styles.title}>Editar Nota</Text>
       <Text style={styles.formTitle}>TÍTULO</Text>
       <TextInput
         style={styles.input}
@@ -160,7 +169,6 @@ export default function NoteScreen({ route, navigation }) {
         {noteImage && <Image source={{ uri: noteImage }} style={styles.image} />}
       </View>
       <Text style={styles.formTitle}>LOCALIZAÇÃO </Text>
-      <Button title="Salvar" onPress={handleSaveNote} style={styles.saveButton}/>
       <View style={styles.locationBox}>
        <TouchableOpacity style={styles.locationButton} >
         <Image source={require('../assets/mappin.and.ellipse.png')} style={{width: 25, height: 25, marginRight: 10}}/>

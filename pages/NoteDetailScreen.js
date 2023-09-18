@@ -8,7 +8,7 @@ const db = DatabaseConnection.getConnection();
 
 export default function NoteDetailScreen({ route, navigation }) {
   const { title, text, id, image, date, location } = route.params;
-  const [selectedLocation, setSelectedLocation] = useState(location);
+  const [selectedLocation, setSelectedLocation] = useState();
 
   const locationFromString = location
     ? {
@@ -43,7 +43,16 @@ export default function NoteDetailScreen({ route, navigation }) {
     navigation.setOptions({
       headerTitle: '',
       headerRight: () => (
-        <Button title="Editar" onPress={()=>{}} style={{marginRight: 10}} />
+        <Button title="Editar" onPress={()=>{
+          navigation.navigate('NoteEdit', {
+            title: title,
+            text: text,
+            image: image,
+            date: date,
+            location: location,
+            noteId: id, 
+          });          
+        }} style={{marginRight: 10}} />
       ),
     });
   }, [navigation]);
