@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Text, Button, SafeAreaView, TouchableOpac
 import * as LocalAuthentication from 'expo-local-authentication';  
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import { Spacer } from 'react-native-flex-layout';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import NoteList from './components/NoteList';
 import NoteScreen from './pages/NoteScreen'; 
@@ -11,7 +11,9 @@ import NoteDetailScreen from './pages/NoteDetailScreen';
 import ConfigScreen from './pages/ConfigScreen';
 import Info from './pages/Info';
 import { StatusBar } from 'expo-status-bar';
+import { DatabaseConnection } from './database';
 
+const db = DatabaseConnection.getConnection();
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -20,6 +22,23 @@ export default function App() {
 
   useEffect(() => {
     loadAuthenticationSetting();
+    db.transaction(function (txn) {
+      txn.executeSql(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='table_note'",
+        [],
+        function (tx, res) {
+          console.log('item:', res.rows.length);
+          console.log(res.rows.item(0));
+          if (res.rows.length == 0) {
+            txn.executeSql('DROP TABLE IF EXISTS table_note', []);
+            txn.executeSql(
+              'CREATE TABLE IF NOT EXISTS table_note (note_id INTEGER PRIMARY KEY AUTOINCREMENT, title VARCHAR(20), text VARCHAR(500), image VARCHAR(500), date VARCHAR(50), location VARCHAR(500))',
+              []
+            );
+          }
+        }
+      );
+    });
   }, []);
 
   const loadAuthenticationSetting = async () => {
@@ -115,43 +134,36 @@ function AuthenticationScreen({ navigation, isAuthenticationEnabled }) {
 
 function HomeScreen({ navigation }) {
   const [notes, setNotes] = useState([]);
+  const isFocused = useIsFocused();
 
   const loadNotes = async () => {
-    try {
-      const savedNotes = await AsyncStorage.getItem('notes');
-      if (savedNotes) {
-        setNotes(JSON.parse(savedNotes));
-      }
-    } catch (error) {
-      console.error('Error loading notes:', error);
-    }
+    db.transaction((tx) => {
+      tx.executeSql(
+        'SELECT * FROM table_note',
+        [],
+        (tx, results) => {
+          var temp = [];
+          for (let i = 0; i < results.rows.length; ++i)
+            temp.push(results.rows.item(i));
+          console.log(temp);
+          setNotes(temp);
+        }
+      );
+    });
   };
 
   useEffect(() => {
-    loadNotes();
-  }, []);
-
-  const handleAddNote = async (note) => {
-  const newNote = { 
-    id: Date.now(), ...note}; // Include image in the note
-  const updatedNotes = [...notes, newNote];
-  setNotes(updatedNotes);
-
-  try {
-    await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
-  } catch (error) {
-    console.error('Error saving notes:', error);
-  }
-
-    //navigation.goBack();
-  };
+    if (isFocused) {
+      loadNotes();
+    }
+  }, [isFocused]);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: '',
       headerRight: () => (
         <View style={{display: "flex", flexDirection: 'row'}}>
-          <TouchableOpacity onPress={() => navigation.navigate('Note', { onSave: handleAddNote })}>
+          <TouchableOpacity onPress={() => navigation.navigate('Note')}>
             <Image source={require('./assets/plus.png')} style={{width: 30, height: 30, marginRight: 16}}/>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Configurações')}>
@@ -164,6 +176,8 @@ function HomeScreen({ navigation }) {
       ),
     });
   }, [navigation]);
+
+  
 
   return (
     <SafeAreaView style={styles.container}>

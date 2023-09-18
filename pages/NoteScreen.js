@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text, Image, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, TextInput, Button, TouchableOpacity, Text, Image, ScrollView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { DatabaseConnection } from '../database';
+
+const db = DatabaseConnection.getConnection();
+
 
 export default function NoteScreen({ route, navigation }) {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteText, setNoteText] = useState('');
   const [noteImage, setNoteImage] = useState(null);
   const [noteDate, setNoteDate] = useState(new Date());
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(true);
   
   useEffect(() => {
@@ -23,14 +28,47 @@ export default function NoteScreen({ route, navigation }) {
       setSelectedLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
     })();
   }, []);
-  
-  const [selectedLocation, setSelectedLocation] = useState(null);
+
   const handleSaveNote = () => {
     if (noteText || noteImage) {
-      console.log('location', selectedLocation);
-      console.log('image', noteImage);
-      route.params.onSave({ title: noteTitle, text: noteText, image: noteImage, date: noteDate, location: selectedLocation });
-      navigation.navigate('Home');
+      console.log('noteTitle', noteTitle);
+      console.log('noteText', noteText);
+      console.log('noteImage', noteImage);
+      console.log('noteDate', noteDate);
+      console.log('selectedLocation', selectedLocation);      
+      const locationString = selectedLocation
+      ? `${selectedLocation.latitude},${selectedLocation.longitude}`
+      : '';
+
+      db.transaction(function (tx) {
+        tx.executeSql(
+          'INSERT INTO table_note (title, text, image, date, location) VALUES (?,?,?,?,?)',
+          [noteTitle, noteText, noteImage, noteDate.toString(), locationString],
+          function (tx, results) {
+            console.log('Results', results.rowsAffected);
+            if (results.rowsAffected > 0) {
+              Alert.alert(
+                'Sucesso!',
+                'Nota salva com sucesso!',
+                [
+                  {
+                    text: 'Ok',
+                    onPress: () => navigation.navigate('Home'),
+                  },
+                ],
+                { cancelable: false }
+              );
+            } else {
+              console.error('Error: No rows affected during insertion.');
+              alert('Error while trying to register the note!');
+            }
+          },
+          function (tx, error) {
+            console.error('Error executing SQL:', error);
+            alert('Error while trying to register the note!');
+          }
+        );
+      });
     }
   };
 
@@ -40,9 +78,24 @@ export default function NoteScreen({ route, navigation }) {
     setNoteDate(currentDate);
   };
 
-
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      if (result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        setNoteImage(selectedImage.uri);
+      }
+    }
+  };
+
+  const handleCamera = async () => {
+    const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
@@ -70,8 +123,6 @@ export default function NoteScreen({ route, navigation }) {
       ),
     });
   }, [navigation]);
-  //
-
 
   return (
     <ScrollView style={styles.container}>
@@ -102,7 +153,7 @@ export default function NoteScreen({ route, navigation }) {
       </View>
       <Text style={styles.formTitle}>IMAGEM</Text>
       <View style={styles.imageBox}>
-        <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
+        <TouchableOpacity style={styles.imageButton} onPress={handleCamera}>
           <Image source={require('../assets/camera.png')} style={{width: 25, height: 25, marginRight: 10}}/>
           <Text style={styles.imageButtonText}>Abrir Câmera</Text>
         </TouchableOpacity>

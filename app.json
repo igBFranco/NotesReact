@@ -18,7 +18,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.igorbuenofranco.NotesReact",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID."
+        "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID.",
+        "NSCameraUsageDescription": "This app uses the camera to take pictures for the notes."
       }
     },
     "android": {

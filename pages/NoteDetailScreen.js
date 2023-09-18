@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Button, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, Button, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { DatabaseConnection } from '../database'; 
 
+const db = DatabaseConnection.getConnection();
 
 
 export default function NoteDetailScreen({ route, navigation }) {
   const { title, text, id, image, date, location } = route.params;
   const [selectedLocation, setSelectedLocation] = useState(location);
 
+  const locationFromString = location
+    ? {
+        latitude: parseFloat(location.split(',')[0]),
+        longitude: parseFloat(location.split(',')[1]),
+      }
+    : null;
 
   const handleLocationPick = (event) => {
     const coordinate = event.nativeEvent.coordinate;
     setSelectedLocation(coordinate);
+  };
+
+  const deleteNote = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        'DELETE FROM table_note WHERE note_id = ?',
+        [id],
+        (tx, results) => {
+          if (results.rowsAffected > 0) {
+            Alert.alert('Nota Excluída', 'A Nota foi excluída com sucesso.');
+            navigation.goBack(); 
+          } else {
+            Alert.alert('Error', 'Failed to delete the note.');
+          }
+        }
+      );
+    });
   };
 
   React.useLayoutEffect(() => {
@@ -37,37 +62,36 @@ export default function NoteDetailScreen({ route, navigation }) {
             <Image source={{ uri: image }} style={styles.image} />
           </View>
           }
-          {location && 
+          {locationFromString && 
             <MapView
             mapType='satellite'
             style={{ height: 200, borderRadius: 8, marginBottom: 12,}}
             showsUserLocation={true}
             minZoomLevel={15}
             initialRegion={{
-              latitude: location.latitude,
-              longitude: location.longitude,
+              latitude: locationFromString.latitude,
+              longitude: locationFromString.longitude,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
             onPress={handleLocationPick}
             >
-              {location && <Marker coordinate={location} />}
+              {locationFromString && <Marker coordinate={locationFromString} />}
             </MapView>
           }
           <Text>
-            {date.toString()}
+            {date}
           </Text>
         </View>
         <View style={styles.bottomBar}>
           <TouchableOpacity onPress={() => {}}/>
-          <TouchableOpacity onPress={() => navigation.navigate('Configurações')}>
+          <TouchableOpacity onPress={() => deleteNote()}>
             <Image source={require('../assets/trash.png')} style={{width: 35, height: 35, marginRight: 10, marginBottom: 25}}/>
           </TouchableOpacity>
         </View>
       </>
     );
 }
-
 
 const styles = StyleSheet.create({
   container: {
