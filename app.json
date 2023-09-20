@@ -19,7 +19,10 @@
       "bundleIdentifier": "com.igorbuenofranco.NotesReact",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID.",
-        "NSCameraUsageDescription": "This app uses the camera to take pictures for the notes."
+        "NSCameraUsageDescription": "This app uses the camera to take pictures for the notes.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "App requires geolocation to improve the quality of the service",
+        "NSLocationAlwaysUsageDescription": "App requires geolocation to improve the quality of the service",
+        "NSLocationWhenInUseUsageDescription": "App requires geolocation to improve the quality of the service"
       }
     },
     "android": {
@@ -43,6 +46,11 @@
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6b6e356d-19af-440c-80ff-092e4ddc59a8"
+      }
+    }
   }
 }

@@ -138,14 +138,17 @@ export default function NoteEditScreen({ route, navigation }) {
     navigation.setOptions({
       headerTitle: "",
       headerRight: () => (
-        <Button title="Salvar" onPress={handleSaveNote} />
+        <Button title="Salvar" onPress={() => handleSaveNote()} />
       ),
     });
   }, [navigation]);
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Editar Nota</Text>
+      <View style={styles.titleBox}>
+        <Text style={styles.title}>Editar Nota</Text>
+        <Button title="Salvar" onPress={() => handleSaveNote()} />
+      </View>
       <Text style={styles.formTitle}>TÍTULO</Text>
       <TextInput
         style={styles.input}
@@ -172,7 +175,6 @@ export default function NoteEditScreen({ route, navigation }) {
             onChange={handleDatePicker}
           />
       </View>
-      <Button title="Salvar" onPress={() => handleSaveNote()} />
       <Text style={styles.formTitle}>IMAGEM</Text>
       <View style={styles.imageBox}>
         <TouchableOpacity style={styles.imageButton} onPress={handleCamera}>
@@ -217,6 +219,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#F2F2F7',
+  },
+  titleBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+
   },
   title: {
     fontSize: 35,

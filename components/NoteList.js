@@ -6,7 +6,7 @@ import { DatabaseConnection } from '../database';
 const db = DatabaseConnection.getConnection();
 
 const NoteList = ({ notes }) => {
-  const navigation = useNavigation(); // Get the navigation object
+  const navigation = useNavigation();
 
   const handleNotePress = (note) => {
     navigation.navigate('NoteDetail', {

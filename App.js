@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 35,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
   blockedTitle: {
     fontSize: 25,
