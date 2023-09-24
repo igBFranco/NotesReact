@@ -5,6 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { DatabaseConnection } from '../database';
+import { set } from 'date-fns';
 
 const db = DatabaseConnection.getConnection();
 
@@ -16,6 +17,7 @@ export default function NoteScreen({ route, navigation }) {
   const [noteDate, setNoteDate] = useState(new Date());
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(true);
+  const [currentLocation, setCurrentLocation] = useState('');
   
   useEffect(() => {
     (async () => {
@@ -25,22 +27,30 @@ export default function NoteScreen({ route, navigation }) {
         return;
       }
       const location = await Location.getCurrentPositionAsync();
-      setSelectedLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+      setCurrentLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
     })();
   }, []);
 
   const handleSaveNote = () => {
+    let locationString = '';
     console.log('entrou no log');
     if (noteText || noteImage) {
-      
-      const locationString = selectedLocation
-      ? `${selectedLocation.latitude},${selectedLocation.longitude}`
+
+      if (selectedLocation === '') {
+        locationString = currentLocation
+      ? `${currentLocation.latitude},${currentLocation.longitude}`
       : '';
+      }else {
+        locationString = selectedLocation
+        ? `${selectedLocation.latitude},${selectedLocation.longitude}`
+        : '';
+      }
+      
 
       db.transaction(function (tx) {
         tx.executeSql(
           'INSERT INTO table_note (title, text, image, date, location) VALUES (?,?,?,?,?)',
-          [noteTitle, noteText, noteImage, noteDate.toLocaleString(), locationString],
+          [noteTitle, noteText, noteImage, noteDate.toString(), locationString],
           function (tx, results) {
             console.log('Results', results.rowsAffected);
             if (results.rowsAffected > 0) {
@@ -167,21 +177,21 @@ export default function NoteScreen({ route, navigation }) {
         <Image source={require('../assets/mappin.and.ellipse.png')} style={{width: 25, height: 25, marginRight: 10}}/>
         <Text style={styles.imageButtonText}>Selecione a Localização</Text>
        </TouchableOpacity>
-       <MapView
+       {currentLocation && <MapView
         mapType='satellite'
         style={styles.map}
         showsUserLocation={true}
         minZoomLevel={15}
         initialRegion={{
-          latitude: selectedLocation ? selectedLocation.latitude : -26.13300,
-          longitude: selectedLocation ? selectedLocation.longitude : -49.80896,
+          latitude: selectedLocation ? selectedLocation.latitude : currentLocation.latitude,
+          longitude: selectedLocation ? selectedLocation.longitude : currentLocation.longitude,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
         onPress={handleLocationPick} 
       >
         {selectedLocation && <Marker coordinate={selectedLocation} />}
-      </MapView>
+      </MapView>}
       </View>
       
     </ScrollView>

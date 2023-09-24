@@ -18,9 +18,10 @@ export default function NoteEditScreen({ route, navigation }) {
   const [noteText, setNoteText] = useState('');
   const [noteImage, setNoteImage] = useState('');
   const [noteDate, setNoteDate] = useState(new Date());
- // const [selectedLocation, setSelectedLocation] = useState(location ? locationFromString : '');
-  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState();
   const [showDatePicker, setShowDatePicker] = useState(true);
+  const [currentLocation, setCurrentLocation] = useState('');
+
 
   const locationFromString = location
     ? {
@@ -28,9 +29,14 @@ export default function NoteEditScreen({ route, navigation }) {
         longitude: parseFloat(location.split(',')[1]),
       }
     : null;
+
+  const dateFromString = date 
+    ? new Date(date) 
+    : new Date();
   
   useEffect(() => {
-    updateAllStates(title, text, image, date, locationFromString);
+    updateAllStates(title, text, image, dateFromString, locationFromString);
+
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -38,7 +44,7 @@ export default function NoteEditScreen({ route, navigation }) {
         return;
       }
       const location = await Location.getCurrentPositionAsync();
-      setSelectedLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+      setCurrentLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
     })();
   }, []);
 
@@ -46,8 +52,8 @@ export default function NoteEditScreen({ route, navigation }) {
     setNoteTitle(title);
     setNoteText(text);
     setNoteImage(image);
-    setNoteDate(new Date());
-    setSelectedLocation(location);
+    setNoteDate(dateFromString);
+    setSelectedLocation(locationFromString);
   };
 
   const handleSaveNote = () => {
@@ -63,7 +69,7 @@ export default function NoteEditScreen({ route, navigation }) {
       db.transaction(function (tx) {
         tx.executeSql(
           'UPDATE table_note SET title=?, text=?, image=?, date=?, location=? WHERE note_id=?',
-          [noteTitle, noteText, noteImage, noteDate.toLocaleString(), locationString, noteId],
+          [noteTitle, noteText, noteImage, noteDate.toString(), locationString, noteId],
           function (tx, results) {
             if (results.rowsAffected > 0) {
               Alert.alert(
@@ -95,7 +101,7 @@ export default function NoteEditScreen({ route, navigation }) {
     const currentDate = selectedDate || noteDate;
     setShowDatePicker(false);
     setNoteDate(currentDate);
-  };
+  };  
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -193,21 +199,40 @@ export default function NoteEditScreen({ route, navigation }) {
         <Image source={require('../assets/mappin.and.ellipse.png')} style={{width: 25, height: 25, marginRight: 10}}/>
         <Text style={styles.imageButtonText}>Selecione a Localização</Text>
        </TouchableOpacity>
-       <MapView
+       {location ? <MapView
         mapType='satellite'
         style={styles.map}
         showsUserLocation={true}
         minZoomLevel={15}
         initialRegion={{
-          latitude: selectedLocation ? selectedLocation.latitude : -26.13300,
-          longitude: selectedLocation ? selectedLocation.longitude : -49.80896,
+          // latitude: selectedLocation ? selectedLocation.latitude : -26.13300,
+          // longitude: selectedLocation ? selectedLocation.longitude : -49.80896,
+          latitude: selectedLocation ? selectedLocation.latitude : parseFloat(location.split(',')[0]),
+          longitude: selectedLocation ? selectedLocation.longitude : parseFloat(location.split(',')[1]),
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
         onPress={handleLocationPick} 
-      >
+        >
         {selectedLocation && <Marker coordinate={selectedLocation} />}
-      </MapView>
+        </MapView> 
+        : 
+        <MapView
+          mapType='satellite'
+          style={styles.map}
+          showsUserLocation={true}
+          minZoomLevel={15}
+          initialRegion={{
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+          onPress={handleLocationPick} 
+        >
+          {selectedLocation && <Marker coordinate={selectedLocation} />}
+        </MapView>
+      }
       </View>
       
     </ScrollView>
