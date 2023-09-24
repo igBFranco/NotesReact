@@ -128,7 +128,7 @@ export default function NoteScreen({ route, navigation }) {
         <Button title="Salvar" onPress={handleSaveNote} />
       ),
     });
-  }, [navigation]);
+  }, [navigation, noteTitle, noteText, noteImage, noteDate, selectedLocation]);
 
   return (
     <ScrollView style={styles.container}>
@@ -170,7 +170,6 @@ export default function NoteScreen({ route, navigation }) {
         {noteImage && <Image source={{ uri: noteImage }} style={styles.image} />}
       </View>
       <Text style={styles.formTitle}>LOCALIZAÇÃO </Text>
-      <Button title="Salvar" onPress={handleSaveNote} style={styles.saveButton}/>
       <View style={styles.locationBox}>
        <TouchableOpacity style={styles.locationButton} >
         <Image source={require('../assets/mappin.and.ellipse.png')} style={{width: 25, height: 25, marginRight: 10}}/>

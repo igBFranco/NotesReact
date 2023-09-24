@@ -55,6 +55,7 @@ export default function NoteEditScreen({ route, navigation }) {
   };
 
   const handleSaveNote = () => {
+    console.log('handleSaveNote');
     if (noteText || noteImage) {
      console.log(noteDate);
      console.log(noteTitle);
@@ -145,13 +146,12 @@ export default function NoteEditScreen({ route, navigation }) {
         <Button title="Salvar" onPress={() => handleSaveNote()} />
       ),
     });
-  }, [navigation]);
+  }, [navigation, noteTitle, noteText, noteImage, noteDate, selectedLocation]);
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.titleBox}>
         <Text style={styles.title}>Editar Nota</Text>
-        <Button title="Salvar" onPress={() => handleSaveNote()} />
       </View>
       <Text style={styles.formTitle}>TÍTULO</Text>
       <TextInput
