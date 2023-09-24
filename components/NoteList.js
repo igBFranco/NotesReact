@@ -5,7 +5,7 @@ import { DatabaseConnection } from '../database';
 
 const db = DatabaseConnection.getConnection();
 
-const NoteList = ({ notes }) => {
+const NoteList = ({ notes, loadNotes }) => {
   const navigation = useNavigation();
 
   const handleNotePress = (note) => {
@@ -20,20 +20,40 @@ const NoteList = ({ notes }) => {
   };
 
   const deleteNote = (note) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        'DELETE FROM table_note WHERE note_id = ?',
-        [note.note_id],
-        (tx, results) => {
-          if (results.rowsAffected > 0) {
-            Alert.alert('Nota Excluída', 'A Nota foi excluída com sucesso.');
-            navigation.navigate('Home'); 
-          } else {
-            Alert.alert('Error', 'Failed to delete the note.');
-          }
-        }
-      );
-    });
+    Alert.alert(
+      'Excluir Nota',
+      'Você tem certeza de que deseja excluir esta nota?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel', 
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive', 
+          onPress: () => {
+            db.transaction((tx) => {
+              tx.executeSql(
+                'DELETE FROM table_note WHERE note_id = ?',
+                [note.note_id],
+                (tx, results) => {
+                  if (results.rowsAffected > 0) {
+                    Alert.alert(
+                      'Nota Excluída',
+                      'A Nota foi excluída com sucesso.'
+                    );
+                    loadNotes();
+                  } else {
+                    Alert.alert('Error', 'Failed to delete the note.');
+                  }
+                }
+              );
+            });
+          },
+        },
+      ],
+      { cancelable: true } 
+    );
   };
 
   const renderListItem = ({ item, index }) => {

@@ -5,8 +5,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { DatabaseConnection } from '../database';
-import { set } from 'date-fns';
-import { even } from 'react-native-flex-layout';
 
 const db = DatabaseConnection.getConnection();
 

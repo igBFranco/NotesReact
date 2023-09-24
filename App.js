@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, Button, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, StyleSheet, Text, Button, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';  
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
-import { Spacer } from 'react-native-flex-layout';
 import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import NoteList from './components/NoteList';
@@ -200,7 +199,7 @@ function HomeScreen({ navigation }) {
           <Text style={styles.title}>
             Anotações
           </Text>
-          <NoteList notes={notes}/>
+          <NoteList notes={notes} loadNotes={loadNotes}/>
         </View>
       </View>
     </SafeAreaView>

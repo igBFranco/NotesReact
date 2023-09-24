@@ -23,21 +23,42 @@ export default function NoteDetailScreen({ route, navigation }) {
   };
 
   const deleteNote = () => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        'DELETE FROM table_note WHERE note_id = ?',
-        [id],
-        (tx, results) => {
-          if (results.rowsAffected > 0) {
-            Alert.alert('Nota Excluída', 'A Nota foi excluída com sucesso.');
-            navigation.goBack(); 
-          } else {
-            Alert.alert('Error', 'Failed to delete the note.');
-          }
-        }
-      );
-    });
+    Alert.alert(
+      'Excluir Nota',
+      'Você tem certeza de que deseja excluir esta nota?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel', 
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive', 
+          onPress: () => {
+            db.transaction((tx) => {
+              tx.executeSql(
+                'DELETE FROM table_note WHERE note_id = ?',
+                [id],
+                (tx, results) => {
+                  if (results.rowsAffected > 0) {
+                    Alert.alert(
+                      'Nota Excluída',
+                      'A Nota foi excluída com sucesso.'
+                    );
+                    navigation.goBack();
+                  } else {
+                    Alert.alert('Error', 'Failed to delete the note.');
+                  }
+                }
+              );
+            });
+          },
+        },
+      ],
+      { cancelable: true } 
+    );
   };
+  
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
