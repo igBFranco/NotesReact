@@ -33,6 +33,7 @@ export default function NoteScreen({ route, navigation }) {
   const handleSaveNote = () => {
     let locationString = '';
     console.log('entrou no log');
+    console.log(noteImage);
     if (noteText || noteImage) {
 
       if (selectedLocation === '') {

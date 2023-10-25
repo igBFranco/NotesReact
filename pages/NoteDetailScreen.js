@@ -88,7 +88,7 @@ export default function NoteDetailScreen({ route, navigation }) {
             {text}
           </Text>
           {image && 
-          <View style={styles.imageContainer}>
+          <View>
             <Image source={{ uri: image }} style={styles.image} />
           </View>
           }
