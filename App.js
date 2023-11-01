@@ -12,6 +12,7 @@ import Info from './pages/Info';
 import { StatusBar } from 'expo-status-bar';
 import { DatabaseConnection } from './database';
 import NoteEditScreen from './pages/NoteEditScreen';
+import PerformanceStats from "react-native-performance-stats";
 
 const db = DatabaseConnection.getConnection();
 const Stack = createStackNavigator();

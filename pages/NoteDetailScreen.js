@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, Button, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { DatabaseConnection } from '../database'; 
@@ -88,9 +88,9 @@ export default function NoteDetailScreen({ route, navigation }) {
             {text}
           </Text>
           {image && 
-          <View>
-            <Image source={{ uri: image }} style={styles.image} />
-          </View>
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: image }} style={styles.image} />
+            </View>
           }
           {locationFromString && 
             <MapView
